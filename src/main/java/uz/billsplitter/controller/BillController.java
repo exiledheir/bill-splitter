@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import uz.billsplitter.dto.OrderRequestDto;
-import uz.billsplitter.dto.OrderResponseDto;
+import uz.billsplitter.dto.BillSplitRequestDto;
+import uz.billsplitter.dto.BillSplitResponseDto;
 import uz.billsplitter.service.BillService;
 
 @Slf4j
@@ -23,8 +23,8 @@ public class BillController {
     BillService billService;
 
     @PostMapping("/splitting")
-    public ResponseEntity<?> splitting(@RequestBody OrderRequestDto request) {
-        OrderResponseDto response = billService.split(request);
+    public ResponseEntity<BillSplitResponseDto> split(@RequestBody BillSplitRequestDto request) {
+        BillSplitResponseDto response = billService.split(request);
         return ResponseEntity.ok(response);
     }
 }

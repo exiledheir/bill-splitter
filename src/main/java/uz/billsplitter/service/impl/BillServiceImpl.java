@@ -5,8 +5,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import uz.billsplitter.dto.OrderRequestDto;
-import uz.billsplitter.dto.OrderResponseDto;
+import uz.billsplitter.dto.BillSplitRequestDto;
+import uz.billsplitter.dto.BillSplitResponseDto;
 import uz.billsplitter.service.BillService;
 
 @Slf4j
@@ -16,7 +16,7 @@ import uz.billsplitter.service.BillService;
 public class BillServiceImpl implements BillService {
 
     @Override
-    public OrderResponseDto split(OrderRequestDto request) {
+    public BillSplitResponseDto split(BillSplitRequestDto request) {
         return null;
     }
 }

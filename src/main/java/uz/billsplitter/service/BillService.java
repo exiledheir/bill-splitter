@@ -1,8 +1,8 @@
 package uz.billsplitter.service;
 
-import uz.billsplitter.dto.OrderRequestDto;
-import uz.billsplitter.dto.OrderResponseDto;
+import uz.billsplitter.dto.BillSplitRequestDto;
+import uz.billsplitter.dto.BillSplitResponseDto;
 
 public interface BillService {
-    OrderResponseDto split(OrderRequestDto request);
+    BillSplitResponseDto split(BillSplitRequestDto request);
 }
