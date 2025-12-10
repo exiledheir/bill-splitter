@@ -1,4 +1,4 @@
 package uz.billsplitter.dto;
 
-public class OrderDto {
+public class BillDto {
 }

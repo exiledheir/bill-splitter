@@ -1,4 +1,4 @@
 package uz.billsplitter.entity;
 
-public class Order {
+public class BillEntity {
 }
