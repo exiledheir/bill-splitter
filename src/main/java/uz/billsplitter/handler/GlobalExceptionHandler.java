@@ -1,48 +1,229 @@
 package uz.billsplitter.handler;
 
+import jakarta.validation.ConstraintViolationException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import uz.billsplitter.exception.ParticipantNotFoundException;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.NoHandlerFoundException;
+import uz.billsplitter.dto.ErrorDto;
+import uz.billsplitter.exception.ApplicationException;
 
-import java.util.HashMap;
-import java.util.Map;
+import static uz.billsplitter.constant.enums.Error.EXTERNAL_SERVICE_FAILED_ERROR_CODE;
+import static uz.billsplitter.constant.enums.Error.HANDLER_NOT_FOUND_ERROR_CODE;
+import static uz.billsplitter.constant.enums.Error.INTERNAL_SERVICE_ERROR_CODE;
+import static uz.billsplitter.constant.enums.Error.INTERNAL_TIMEOUT_ERROR_CODE;
+import static uz.billsplitter.constant.enums.Error.INVALID_REQUEST_PARAM_ERROR_CODE;
+import static uz.billsplitter.constant.enums.Error.JSON_NOT_VALID_ERROR_CODE;
+import static uz.billsplitter.constant.enums.Error.METHOD_NOT_SUPPORTED_ERROR_CODE;
+import static uz.billsplitter.constant.enums.Error.MISSING_REQUEST_HEADER_ERROR_CODE;
+import static uz.billsplitter.constant.enums.Error.VALIDATION_ERROR_CODE;
+import static uz.billsplitter.constant.enums.ErrorType.EXTERNAL;
+import static uz.billsplitter.constant.enums.ErrorType.INTERNAL;
+import static uz.billsplitter.constant.enums.ErrorType.VALIDATION;
 
+
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(ParticipantNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleParticipantNotFound(ParticipantNotFoundException ex) {
-        Map<String, String> error = new HashMap<>();
-        error.put("error", "Participant not found");
-        error.put("message", ex.getMessage());
+    @ExceptionHandler(ApplicationException.class)
+    private ResponseEntity<ErrorDto> handleApplicationException(ApplicationException ex) {
+        log.error("Error: {}", ex.getMessage());
+
+        var errorBody = ErrorDto
+            .builder()
+            .code(ex.getCode())
+            .type(ex.getErrorType())
+            .message(ex.getMessage())
+            .build();
+
+        return ResponseEntity.status(ex.getStatus()).body(errorBody);
+    }
+
+    @ExceptionHandler(MissingRequestHeaderException.class)
+    private ResponseEntity<ErrorDto> handleMissingRequestHeaderException(final MissingRequestHeaderException ex) {
+        log.error("MissingRequestHeaderException : {}", ex.getMessage(), ex);
+
+        var error = ErrorDto
+            .builder()
+            .type(INTERNAL)
+            .code(MISSING_REQUEST_HEADER_ERROR_CODE.getCode())
+            .message(ex.getMessage())
+            .build();
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    protected ResponseEntity<Object> handleHttpMediaTypeNotSupportedException(final HttpMediaTypeNotSupportedException ex) {
+        log.error("HttpMediaTypeNotSupportedException : {}", ex.getMessage(), ex);
+
+        var error = ErrorDto
+            .builder()
+            .type(INTERNAL)
+            .code(HANDLER_NOT_FOUND_ERROR_CODE.getCode())
+            .message(ex.getMessage())
+            .build();
+
+        return ResponseEntity.badRequest().body(error);
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    protected ResponseEntity<Object> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException ex) {
+        log.error("HttpRequestMethodNotSupportedException : {}", ex.getMessage(), ex);
+
+        var error = ErrorDto
+            .builder()
+            .type(INTERNAL)
+            .code(METHOD_NOT_SUPPORTED_ERROR_CODE.getCode())
+            .message(ex.getMessage())
+            .build();
+
+        return ResponseEntity.badRequest().body(error);
+    }
+
+    @ExceptionHandler(ResourceAccessException.class)
+    public ResponseEntity<ErrorDto> handleResourceAccessException(ResourceAccessException ex) {
+        log.error("ResourceAccessException = {}", ex.getMessage(), ex);
+
+        var error = ErrorDto
+            .builder()
+            .type(INTERNAL)
+            .code(INTERNAL_TIMEOUT_ERROR_CODE.getCode())
+            .message(ex.getMessage())
+            .build();
+
+        return ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT).body(error);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorDto> handleMethodArgumentMismatchException(MethodArgumentTypeMismatchException ex) {
+        log.error("MethodArgumentTypeMismatchException = {}", ex.getMessage(), ex);
+
+        var error = ErrorDto
+            .builder()
+            .type(INTERNAL)
+            .code(INVALID_REQUEST_PARAM_ERROR_CODE.getCode())
+            .message(ex.getMessage())
+            .build();
+
+        return ResponseEntity.badRequest().body(error);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        Map<String, Object> errors = new HashMap<>();
-        errors.put("error", "Validation failed");
+    protected ResponseEntity<Object> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
+        log.error("Validation error: {}", ex.getMessage(), ex);
 
-        Map<String, String> fieldErrors = new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach(error -> {
-            String fieldName = ((FieldError) error).getField();
-            String errorMessage = error.getDefaultMessage();
-            fieldErrors.put(fieldName, errorMessage);
-        });
+        var validationErrors = ex.getBindingResult()
+            .getAllErrors()
+            .stream()
+            .map(error -> {
+                if (error instanceof FieldError fieldError) {
+                    return fieldError.getField() + ": " + fieldError.getDefaultMessage();
+                } else {
+                    return error.getDefaultMessage();
+                }
+            })
+            .toList();
 
-        errors.put("fields", fieldErrors);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
+        var error = ErrorDto.builder()
+            .type(VALIDATION)
+            .message(VALIDATION_ERROR_CODE.getMessage())
+            .validationErrors(validationErrors)
+            .build();
+
+        return ResponseEntity.badRequest().body(error);
+    }
+
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    protected ResponseEntity<Object> httpMessageNotReadableException(final HttpMessageNotReadableException ex) {
+        log.error("HttpMessageNotReadableException : {}", ex.getMessage(), ex);
+
+        var error = ErrorDto
+            .builder()
+            .type(INTERNAL)
+            .code(JSON_NOT_VALID_ERROR_CODE.getCode())
+            .message(ex.getMessage())
+            .build();
+
+        return ResponseEntity.badRequest().body(error);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    protected ResponseEntity<Object> constraintViolationException(ConstraintViolationException ex) {
+        log.error("ConstraintViolationException : {}", ex.getMessage(), ex);
+
+        var error = ErrorDto.builder().build();
+
+        return ResponseEntity.badRequest().body(error);
+    }
+
+    @ExceptionHandler(NoHandlerFoundException.class)
+    protected ResponseEntity<Object> handleNoHandlerFoundException(NoHandlerFoundException ex) {
+        log.error("NoHandlerFoundException : {}", ex.getMessage(), ex);
+
+        var error = ErrorDto
+            .builder()
+            .type(INTERNAL)
+            .code(HANDLER_NOT_FOUND_ERROR_CODE.getCode())
+            .message(ex.getMessage())
+            .build();
+
+        return ResponseEntity.badRequest().body(error);
+    }
+
+    @ExceptionHandler(HttpClientErrorException.class)
+    protected ResponseEntity<ErrorDto> handleException(final HttpClientErrorException ex) {
+        log.error("HttpClientErrorException : {}", ex.getMessage(), ex);
+
+        var error = ErrorDto
+            .builder()
+            .code(EXTERNAL_SERVICE_FAILED_ERROR_CODE.getCode())
+            .type(INTERNAL)
+            .message(ex.getMessage())
+            .build();
+
+        return ResponseEntity.status(ex.getStatusCode()).body(error);
+    }
+
+    @ExceptionHandler(HttpServerErrorException.class)
+    protected ResponseEntity<ErrorDto> handleException(final HttpServerErrorException ex) {
+        log.error("HttpServerErrorException : {}", ex.getMessage(), ex);
+
+        var error = ErrorDto
+            .builder()
+            .code(EXTERNAL_SERVICE_FAILED_ERROR_CODE.getCode())
+            .type(EXTERNAL)
+            .message(ex.getMessage())
+            .build();
+
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error);
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, String>> handleGenericException(Exception ex) {
-        Map<String, String> error = new HashMap<>();
-        error.put("error", "Internal server error");
-        error.put("message", ex.getMessage());
+    protected ResponseEntity<ErrorDto> handleException(final Exception ex) {
+        log.error("Exception : {}", ex.getMessage(), ex);
+
+        var error = ErrorDto
+            .builder()
+            .code(INTERNAL_SERVICE_ERROR_CODE.getCode())
+            .type(INTERNAL)
+            .message(ex.getMessage())
+            .build();
+
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 }

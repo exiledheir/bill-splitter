@@ -6,11 +6,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uz.billsplitter.dto.BillSplitRequestDto;
-import uz.billsplitter.dto.ItemBreakdownDto;
-import uz.billsplitter.dto.ItemDto;
-import uz.billsplitter.dto.ParticipantCalculationDto;
-import uz.billsplitter.dto.ParticipantRequestDto;
+import uz.billsplitter.dto.bills.BillSplitRequestDto;
+import uz.billsplitter.dto.items.ItemBreakdownDto;
+import uz.billsplitter.dto.items.ItemDto;
+import uz.billsplitter.dto.participant.ParticipantCalculationDto;
+import uz.billsplitter.dto.participant.ParticipantRequestDto;
 import uz.billsplitter.mapper.BillMapper;
 import uz.billsplitter.service.impl.BillServiceImpl;
 

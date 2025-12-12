@@ -1,4 +1,4 @@
-package uz.billsplitter.dto;
+package uz.billsplitter.dto.participant;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

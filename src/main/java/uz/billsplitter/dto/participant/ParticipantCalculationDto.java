@@ -1,4 +1,6 @@
-package uz.billsplitter.dto;
+package uz.billsplitter.dto.participant;
+
+import uz.billsplitter.dto.items.ItemBreakdownDto;
 
 import java.math.BigDecimal;
 import java.util.List;

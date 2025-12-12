@@ -1,4 +1,4 @@
-package uz.billsplitter.dto;
+package uz.billsplitter.dto.items;
 
 import java.math.BigDecimal;
 

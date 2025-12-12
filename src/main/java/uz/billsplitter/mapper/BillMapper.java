@@ -2,10 +2,10 @@ package uz.billsplitter.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import uz.billsplitter.dto.ItemBreakdownDto;
-import uz.billsplitter.dto.ItemDto;
-import uz.billsplitter.dto.ParticipantCalculationDto;
-import uz.billsplitter.dto.ParticipantRequestDto;
+import uz.billsplitter.dto.items.ItemBreakdownDto;
+import uz.billsplitter.dto.items.ItemDto;
+import uz.billsplitter.dto.participant.ParticipantCalculationDto;
+import uz.billsplitter.dto.participant.ParticipantRequestDto;
 
 import java.math.BigDecimal;
 import java.util.List;

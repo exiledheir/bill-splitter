@@ -1,4 +1,4 @@
-package uz.billsplitter.dto;
+package uz.billsplitter.dto.items;
 
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;

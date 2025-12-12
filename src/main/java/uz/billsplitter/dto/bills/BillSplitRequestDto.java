@@ -1,9 +1,11 @@
-package uz.billsplitter.dto;
+package uz.billsplitter.dto.bills;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import uz.billsplitter.dto.items.ItemDto;
+import uz.billsplitter.dto.participant.ParticipantRequestDto;
 
 import java.math.BigDecimal;
 import java.util.List;
