@@ -1,10 +1,12 @@
 package uz.billsplitter.controller;
 
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,6 +16,7 @@ import uz.billsplitter.dto.BillSplitResponseDto;
 import uz.billsplitter.service.BillService;
 
 @Slf4j
+@Validated
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/bills")
@@ -23,7 +26,7 @@ public class BillController {
     BillService billService;
 
     @PostMapping("/splitting")
-    public ResponseEntity<BillSplitResponseDto> split(@RequestBody BillSplitRequestDto request) {
+    public ResponseEntity<BillSplitResponseDto> split(@Valid @RequestBody BillSplitRequestDto request) {
         BillSplitResponseDto response = billService.split(request);
         return ResponseEntity.ok(response);
     }
